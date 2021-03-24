@@ -1,0 +1,347 @@
+#subroutines for prob.rev.lr. task
+###############logfile
+sub
+CreatePRLlog 
+begin
+	ID_subject.split("_",subject_parts); # splits subject ID using "_" as delimiter
+	subject_nb = int(subject_parts[2]); # get subject number
+	session_nb = int(subject_parts[4]); # get session number
+
+	# 1 SESSION VERSION
+	color_nb = 1;
+
+	# #2 SESSION VERSION
+	# #even subjects get color 1 on day 1 and color 2 on day 2, odd subjects the reverse. 
+	#	color_nb = mod(subject_nb, 2) + 1;
+	#	if session_nb ==2
+	#	then color_nb = 3-color_nb
+	#	end;
+		
+	PRLlog.open("PRL_"+ID_subject+date_time("'_'ddmmyy'_'hhnnss")+".log");
+	PRLlog.print("Probabilistic Reversal Learning Task\n");
+	PRLlog.print("Hanneke den Ouden - Donders Institute\n");
+	PRLlog.print("ID Subject / Session :\t"+ID_subject+"\n");
+	PRLlog.print ("ID subject " + string (subject_nb)+"\n");
+	PRLlog.print ("Session " + string (session_nb)+"\n");
+	PRLlog.print ("Color " + string (color_nb)+"\n"); # 1= blue-yellow; 2= orange, pink
+	PRLlog.print("created on "+date_time("dddddd' at 'tt")+"\n");
+	PRLlog.print("subject"); # =subject_nb
+	PRLlog.print("\t");
+	PRLlog.print("session"); # =session_nb
+	PRLlog.print("\t");
+	PRLlog.print("trial"); # =i
+	PRLlog.print("\t");
+	PRLlog.print ("stimulus1"); #= location stimA trial_order[i][1]
+	PRLlog.print ("\t");
+	PRLlog.print ("stimulus2"); #= location stimB trial_order[i][1]
+	PRLlog.print ("\t");
+	PRLlog.print("actual or misleading feedback"); #= if i =< 40, 2 = misleading feedback; i>40 --> 1=misleading feedback.
+	PRLlog.print("\t");
+	PRLlog.print("chosen_stimulus"); #= 1 =stimA, 2 =stimB
+	PRLlog.print("\t");
+	PRLlog.print("Nth_correctACQ"); #= hits_in_row_ACQUISITION PHASE (<41)
+	PRLlog.print("\t");
+	PRLlog.print("Nth_correctREV"); #= hits_in_row_REVERSAL PHASE (>40)
+	PRLlog.print("\t");
+	PRLlog.print("RT_1st_response"); # RT of 1st response
+	PRLlog.print("\t");
+	PRLlog.print("RT_last_response(hit)"); # RT of very last response, in case outside retangles is pressed before inside target
+	PRLlog.print("\t");
+	PRLlog.print("outcome_ACQ"); #= from 1 to 4 (1correct, 2wrong, 3misleading correct, 4misleading wrong).
+	PRLlog.print("\t");
+	PRLlog.print("outcome_REV"); #= from 1 to 4 (1correct, 2wrong, 3misleading correct, 4misleading wrong).
+	PRLlog.print("\t");
+	PRLlog.print("Error_ACQ"); #1=wrong response, 0= correct response during first 40 trials
+	PRLlog.print("\t");
+	PRLlog.print("Error_REV"); #1=wrong response, 0= correct response as of trial 41
+	PRLlog.print("\t");
+	PRLlog.print("time ITI presented"); 
+	PRLlog.print("\t");
+	PRLlog.print("time stimuli presented"); 
+	PRLlog.print("\t");
+	PRLlog.print("time response and feedback");	
+	PRLlog.print("\t");
+	PRLlog.print("\n");	# go to next line in log file
+end;
+
+sub firstpart_log begin
+	chlog.append("\n"+string(subject_nb)+"\t"+string(session_nb)+"\t"+string(i)+"\t"+string(trial_order[i][1])+"\t"+string(trial_order[i][2])+"\t"+string(trial_order[i][3]));
+end;
+
+sub log_trial1 begin
+	chlog.append("\t"+ string(correct_stim)+"\t"+string(0)+"\t"+string(0)+"\t"+string(RT)+"\t"+string(RT2)+"\t"+string(1)+"\t\t\t\t"+string(ITItime)+"\t"+string(time_stim)+"\t"+string(time_resp));
+end;
+
+####which 2 buttons are used for 2 stimuli this trial? So they are the only active buttons
+sub
+set_buttons
+begin
+buttonA = trial_order[i][1]; buttonB = trial_order[i][2]; 
+arraybuttons[1]=buttonA; arraybuttons[2]=buttonB; 
+basic_trial_STIM.set_terminator_buttons (arraybuttons);
+end;
+# continue only if an extra response is added with defined number in () when calling this function... 
+sub
+	WaitForButtonpress (int Pressed)
+begin
+loop count_old = response_manager.total_response_count(Pressed)
+until response_manager.total_response_count(Pressed) > count_old
+begin 
+end;
+end;
+#############################################################################
+# called during instructions / example
+sub
+  show_text( string message ) 
+begin
+   text_intro.set_caption( message );
+   text_intro.redraw();
+   pic_intro.present();
+end;
+##################################################################
+sub
+make_trials
+# defines for each of 4 possible colored stimuli which location they are presented
+# On each trial, the location of trials is detemined by 1st or 2nd column of trial_order, which refers to row in stim_location(1:4), in stim_location,
+begin
+if color_nb ==1 then
+basic_pic.add_part (stimulusA ,stim_location [trial_order[i][1]][2],stim_location [trial_order[i][1]][3]); basic_pic.set_part_on_top(basic_pic.part_count(),true);
+basic_pic.add_part (stimulusB ,stim_location [trial_order[i][2]][2],stim_location [trial_order[i][2]][3]); basic_pic.set_part_on_top(basic_pic.part_count(),true);
+else
+basic_pic.add_part (stimulusC ,stim_location [trial_order[i][1]][2],stim_location [trial_order[i][1]][3]); basic_pic.set_part_on_top(basic_pic.part_count(),true);
+basic_pic.add_part (stimulusD ,stim_location [trial_order[i][2]][2],stim_location [trial_order[i][2]][3]); basic_pic.set_part_on_top(basic_pic.part_count(),true);
+end;
+basic_trial_STIM.set_duration (forever)
+end;
+###################################################
+# determine for how long the FB should be visible. 
+sub
+FB_duration_present
+begin
+	basic_trial_STIM.set_duration (1500);
+	basic_trial_STIM.set_terminator_button (5);
+	basic_trial_STIM.present();
+end;
+# what to show when wrong or correct
+sub
+feedback_wrong
+begin
+	sound_wrong.present();
+
+if (imagefeedback==1)
+then 	basic_pic.add_part(bmp2,0,0);	
+else	basic_pic.add_part (text_wrong,0,0);
+end;
+	
+end;
+sub
+feedback_correct
+begin 
+	sound_correct.present();
+if (imagefeedback==1)
+then 	basic_pic.add_part(bmp1,0,0);	
+else 	basic_pic.add_part (text_correct,0,0);
+end;
+
+end;
+
+# count correct responses for LOG
+sub
+REV_count
+begin
+	hits_in_row_ACQ = 0;		
+	hits_in_row_REV = hits_in_row_REV +1;	
+end;
+
+sub 
+ACQ_count
+begin
+	hits_in_row_REV = 0;		
+	hits_in_row_ACQ = hits_in_row_ACQ +1;	
+end;
+
+sub
+log_reversal
+begin
+if i ==40 then hits_in_row_ACQ =0; hits_in_row_REV =-1; end;
+end;
+
+# take parts that are added after basic-pic out. 
+sub
+remove_parts
+begin
+	loop until basic_pic.part_count()<=part_count
+	begin basic_pic.remove_part(basic_pic.part_count()); end;
+end;
+###############################################################################################################
+sub
+present_trial1
+begin
+make_trials(); 
+
+event_basictrial.set_event_code (string (trial_order[i][1])+(string(trial_order[i][2])+(string(trial_order[i][3])))); #code for stimA and stimB location
+stimulus_data last_iti = stimulus_manager.last_stimulus_data();
+	ITItime = last_iti.time();
+	basic_trial_STIM.present();
+stimulus_data last_stim = stimulus_manager.last_stimulus_data();
+time_stim = last_stim.time();
+response_data last = response_manager.last_response_data();
+			time_resp = last.time();
+			RT = (time_resp - time_stim);
+if last.button() == trial_order [i][1] then correct_stim = 1; 	end;
+				if last.button() == trial_order[i][2] then correct_stim = 2; 			end;
+				if correct_stim==1 then 
+					basic_pic.add_part (ret_correct,stim_location [trial_order[i][1]][2],stim_location [trial_order[i][1]][3]);
+					feedback_correct();					
+					event_basictrial.set_event_code ("first selected stimulus =" + string (correct_stim)+ "; RT= " + string(RT)+"\t\t"+string(0)+"\t"+string(1)); 
+					FB_duration_present();						
+				end;
+				if correct_stim==2 then 
+					basic_pic.add_part(ret_correct, stim_location [trial_order[i][2]][2],stim_location [trial_order[i][2]][3]);
+					feedback_correct();
+					event_basictrial.set_event_code ("first selected stimulus =" + string (correct_stim)+ "; RT= " + string(RT)+"\t\t"+string(0)+"\t"+string(1)); 
+					FB_duration_present();						
+				end;
+log_trial1();
+end;
+
+####################0#############################################################################
+sub
+present_other_trials
+begin
+	make_trials(); # present stimuli 
+	# where do A and B go and what is correct/incorrect
+	event_basictrial.set_event_code (string (trial_order[i][1])+(string(trial_order[i][2])+(string(trial_order[i][3])))); #code for stimA and stimB location
+# determine when last stim and response was. and calculate RT
+stimulus_data last_iti = stimulus_manager.last_stimulus_data();
+	ITItime = last_iti.time();
+	basic_trial_STIM.present();
+stimulus_data last_stim = stimulus_manager.last_stimulus_data();
+	time_stim = last_stim.time();
+response_data last = response_manager.last_response_data();
+			time_resp = last.time();
+			RT = (time_resp - time_stim);	
+# if last button = stim A location and if correct stim is indeed A: correct, else wrong. 
+	if last.button () == trial_order[i][1] 
+				then if correct_stim==1 then
+					if trial_order[i][3]==1 then 
+								feedback_correct();
+								basic_pic.add_part (ret_correct,stim_location [trial_order[i][1]][2],stim_location [trial_order[i][1]][3]);
+								event_basictrial.set_event_code ("CHOICEcorrect_FBcorrect_11" + "; RT= " + string(RT)); 
+								ACQ_count();							
+								chlog.append("\t"+ string(1)+"\t"+string(hits_in_row_ACQ)+"\t"+string(hits_in_row_REV)+"\t"+string(RT)+"\t"+string(1)+"\t"+string(3)+"\t"+string(0)+"\t"+string(1)+"\t"+string(time_stim)+"\t"+string(time_resp));#+"\t"+string(ITItime));
+					elseif trial_order[i][3]==2 then 
+								feedback_wrong();
+								basic_pic.add_part (ret_wrong,stim_location [trial_order[i][1]][2],stim_location [trial_order[i][1]][3]);
+								event_basictrial.set_event_code ("CHOICEcorrect_FBincorrect_12"+ "; RT= " + string(RT)); 
+								ACQ_count();											
+								chlog.append("\t"+ string(1)+"\t"+string(hits_in_row_ACQ)+"\t"+string(hits_in_row_REV)+"\t"+string(RT)+"\t"+string(4)+"\t"+string(2)+"\t"+string(0)+"\t"+string(1)+"\t"+string(time_stim)+"\t"+string(time_resp));#+"\t"+string(ITItime));
+					end;
+								FB_duration_present();								
+							
+				end; 
+				if correct_stim==2 then
+					if trial_order[i][3]==2 then 
+								feedback_correct();
+								basic_pic.add_part (ret_correct,stim_location [trial_order[i][1]][2],stim_location [trial_order[i][1]][3]);
+								event_basictrial.set_event_code ("CHOICEwrong_FBcorrect_21"+ "; RT= " + string(RT)); 	
+								REV_count();							
+								chlog.append("\t"+ string(1)+"\t"+string(hits_in_row_ACQ)+"\t"+string(hits_in_row_REV)+"\t"+string(RT)+"\t"+string(3)+"\t"+string(1)+"\t"+string(1)+"\t"+string(0)+"\t"+string(time_stim)+"\t"+string(time_resp));#+"\t"+string(ITItime));
+					elseif trial_order[i][3]==1 then 
+								feedback_wrong();
+								basic_pic.add_part (ret_wrong,stim_location [trial_order[i][1]][2],stim_location [trial_order[i][1]][3]);
+								event_basictrial.set_event_code ("CHOICEwrong_FBwrong_22"+ "; RT= " + string(RT)); 
+								REV_count();							
+								chlog.append("\t"+ string(1)+"\t"+string(hits_in_row_ACQ)+"\t"+string(hits_in_row_REV)+"\t"+string(RT)+"\t"+string(2)+"\t"+string(4)+"\t"+string(1)+"\t"+string(0)+"\t"+string(time_stim)+"\t"+string(time_resp));#+"\t"+string(ITItime));
+					end;
+								FB_duration_present();								
+				end; 
+			end;
+			
+			if last.button () == trial_order[i][2] 
+				then if correct_stim==2 then
+					if trial_order[i][3]==1 then 
+								feedback_correct();
+								basic_pic.add_part(ret_correct, stim_location [trial_order[i][2]][2],stim_location [trial_order[i][2]][3]);
+								event_basictrial.set_event_code ("CHOICEcorrect_FBcorrect_11"+ "; RT= " + string(RT)); 
+								ACQ_count();					
+								chlog.append("\t"+ string(2)+"\t"+string(hits_in_row_ACQ)+"\t"+string(hits_in_row_REV)+"\t"+string(RT)+"\t"+string(1)+"\t"+string(3)+"\t"+string(0)+"\t"+string(1)+"\t"+string(time_stim)+"\t"+string(time_resp));#+"\t"+string(ITItime));
+					elseif trial_order[i][3]==2 then 
+								feedback_wrong();
+								basic_pic.add_part(ret_wrong, stim_location [trial_order[i][2]][2],stim_location [trial_order[i][2]][3]);
+								event_basictrial.set_event_code ("CHOICEcorrect_FBwrong_12"+ "; RT= " + string(RT));
+								ACQ_count();							
+								chlog.append("\t"+ string(2)+"\t"+string(hits_in_row_ACQ)+"\t"+string(hits_in_row_REV)+"\t"+string(RT)+"\t"+string(4)+"\t"+string(2)+"\t"+string(0)+"\t"+string(1)+"\t"+string(time_stim)+"\t"+string(time_resp));#+"\t"+string(ITItime));
+ 					end;
+								FB_duration_present();	
+				end; 
+				if correct_stim==1 then
+					if trial_order[i][3]==2 then
+								feedback_correct();
+								basic_pic.add_part(ret_correct, stim_location [trial_order[i][2]][2],stim_location [trial_order[i][2]][3]);
+								event_basictrial.set_event_code ("CHOICEwrong_FBcorrect_21"+ "; RT= " + string(RT)); 
+								REV_count();					
+								chlog.append("\t"+ string(2)+"\t"+string(hits_in_row_ACQ)+"\t"+string(hits_in_row_REV)+"\t"+string(RT)+"\t"+string(3)+"\t"+string(1)+"\t"+string(1)+"\t"+string(0)+"\t"+string(time_stim)+"\t"+string(time_resp));#+"\t"+string(ITItime));
+					elseif trial_order[i][3]==1 then
+								feedback_wrong();
+								basic_pic.add_part(ret_wrong, stim_location [trial_order[i][2]][2],stim_location [trial_order[i][2]][3]);
+								event_basictrial.set_event_code ("CHOICEwrong_FBwrong_22"+ "; RT= " + string(RT)); 
+								REV_count();																
+								chlog.append("\t"+ string(2)+"\t"+string(hits_in_row_ACQ)+"\t"+string(hits_in_row_REV)+"\t"+string(RT)+"\t"+string(2)+"\t"+string(4)+"\t"+string(1)+"\t"+string(0)+"\t"+string(time_stim)+"\t"+string(time_resp));#+"\t"+string(ITItime));
+					end;
+								FB_duration_present();							
+				end; 
+			end;	
+log_reversal(); # after each trial check if it's time for reversal.
+# only relevant for log file. Which one is rewarded / not is hardcoded in the array in INFO
+end;
+
+########################################################################################
+#make example for instruction
+sub
+make_example_trial
+begin
+if color_nb ==1 then	
+basic_pic.add_part (stimulusA ,stim_location [1][2],stim_location [1][3]); basic_pic.set_part_on_top(basic_pic.part_count(),true); # top
+basic_pic.add_part (stimulusB ,stim_location [3][2],stim_location [3][3]); basic_pic.set_part_on_top(basic_pic.part_count(),true); # bottom
+else
+basic_pic.add_part (stimulusC ,stim_location [1][2],stim_location [1][3]); basic_pic.set_part_on_top(basic_pic.part_count(),true); # top
+basic_pic.add_part (stimulusD ,stim_location [3][2],stim_location [3][3]); basic_pic.set_part_on_top(basic_pic.part_count(),true); # bottom
+end;
+
+text_example.set_caption ("Druk om door te gaan");
+
+basic_trial_STIM.set_duration (forever);
+basic_trial_STIM.set_terminator_button (5); # druk op spatie om door te gaan, kan ook een andere knop worden. 
+text_example.redraw();
+basic_trial_STIM.present();
+end;
+############### uitleg en roept voorbeeld (example trial)  aan #####
+sub
+example_explanation
+begin
+if color_nb ==1 then
+show_text("In deze taak krijg je steeds twee plaatjes te zien:\n\neen gele en een blauwe.\n\n\nDruk op spatie voor een voorbeeld");WaitForButtonpress(5); make_example_trial();
+else
+show_text("In deze taak  krijg je steeds twee plaatjes te zien:\n\neen oranje en een paarse.\n\n\nDruk op spatie voor een voorbeeld");WaitForButtonpress(5); make_example_trial();
+end;
+show_text("Je kiest dan een van de plaatjes met de pijlen op het numerieke toetsenbord. \n\n\nEén van de plaatjes is vaker goed dan de andere. \n\nHet is de bedoeling dat je steeds het plaatje kiest \n\nwaarvan de computer vaker zegt dat het goed is. \n\nJe moet zelf proberen uit te vinden welk plaatje goed of fout is.");
+	WaitForButtonpress(5);		
+
+show_text("Op bepaalde momenten kan de regel veranderen, \n\nzodat het andere plaatje ineens vaker goed is.\n\nWissel dan van plaatje. Dit kan een of meer keren gebeuren tijdens de taak."); 
+WaitForButtonpress(5);		
+
+show_text("Het is belangrijk om je te realiseren dat de feedback die je krijgt, \n\nALLEEN afhangt van het plaatje dat je kiest, \n\ndus niet van de locatie van de plaatjes."); 
+WaitForButtonpress(5);		
+
+show_text("Het is de bedoeling dat deze taak niet makkelijk is, \n\n en het is onmogelijk geen fouten te maken. \n\n Dus geef dan niet op en blijf goed je best doen!\n\n\nVeel succes!");
+WaitForButtonpress(5);		
+
+remove_parts ();
+text_example.set_caption (" "); text_example.redraw();
+end;
+
+############################
+
+
+

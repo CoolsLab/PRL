@@ -1,0 +1,36 @@
+include "PRL_INFO.pcl"
+include "PRL_SUBS.pcl"
+
+
+CreatePRLlog();
+example_explanation();
+Trial_START.present();
+
+int START_EXP = clock.time();
+PRLlog.print("Time start experiment  " + string(START_EXP));
+
+loop i=1
+	until 	i > nr_trials begin
+
+set_buttons();
+
+TIME_starttrial = clock.time();
+firstpart_log();
+
+	if i == 1 	
+then present_trial1();
+end;
+			if i > 1 
+then present_other_trials();
+end;
+
+ITI.present(); 
+remove_parts ();	
+PRLlog.print(chlog);	chlog="";
+
+				if i ==80 
+				then trial_END.present(); 
+				end; 
+
+i=i+1;
+end;

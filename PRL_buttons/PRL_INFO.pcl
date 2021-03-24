@@ -1,0 +1,62 @@
+# introduces all integers, strings and arrays that occur in experiment.
+#Always: location 1 TOP, 2 RIGHT, 3 DOWN, 4 LEFT
+int i; int x; int y;
+int nr_trials = 80;
+int correct_stim = 0;
+int hits_in_row_ACQ = 0;
+int hits_in_row_REV =0;
+int part_count = basic_pic.part_count();
+int resp = response_manager.response_count ();
+int time_resp; int time_resp2;
+int RT; int RT2;
+int time_stim;
+int ITItime;
+int TIME_starttrial; 
+int count_old;
+
+# Tefine task version 
+#-----------------------------------------------------------------------------------------------------------------------------------
+# imagefeedback: smiley faces (1) or words (0)
+int imagefeedback = 0; 
+
+## FEEDBACK CONTINGENCIES
+## 70/30 contingencies
+array<int> trial_order[80][4] = {{4,2,1,2},{2,4,1,2},{3,2,1,2},{1,4,2,1},{2,3,2,1},{3,4,1,2},{3,1,1,2},{2,3,1,2},{3,2,2,1},{4,3,1,2},
+{4,2,1,2},{2,1,1,2},{4,1,2,1},{1,3,1,2},{1,2,1,2},{1,3,1,2},{1,4,1,2},{3,1,2,1},{4,3,2,1},{3,2,1,2},{2,4,1,2},{1,3,2,1},{4,2,1,2},{4,3,1,2},
+{4,2,2,1},{2,3,1,2},{2,4,2,1},{3,2,1,2},{1,3,1,2},{3,1,1,2},{2,3,1,2},{4,2,1,2},{1,4,2,1},{1,2,2,1},{3,2,1,2},{2,4,1,2},{3,1,1,2},{3,4,1,2},
+{4,2,2,1},{4,1,1,2},{2,3,2,1},{2,1,1,2},{3,2,2,1},{2,3,2,1},{1,2,2,1},{1,2,2,1},{2,4,1,2},{2,3,1,2},{1,2,2,1},{1,4,2,1},{2,1,2,1},{2,3,2,1},
+{1,4,1,2},{1,3,2,1},{4,3,1,2},{4,2,2,1},{3,1,2,1},{2,3,1,2},{4,2,2,1},{3,1,2,1},{3,1,2,1},{4,3,1,2},{4,2,2,1},{1,4,2,1},{1,2,1,2},{1,4,2,1},
+{1,2,2,1},{4,2,1,2},{1,4,2,1},{2,1,2,1},{4,1,2,1},{1,2,1,2},{1,4,2,1},{3,1,2,1},{2,1,2,1},{1,2,1,2},{2,1,1,2},{4,1,2,1},{1,4,2,1},{3,2,2,1}};
+
+## 80/20 contingencies
+#array<int> trial_order[80][4] = {{4,2,1,2},{2,4,1,2},{3,2,2,1},{1,4,1,2},{2,3,1,2},{3,4,1,2},{3,1,2,1},{2,3,1,2},{3,2,1,2},{4,3,1,2},
+# {4,2,1,2},{2,1,2,1},{4,1,1,2},{1,3,1,2},{1,2,1,2},{1,3,1,2},{1,4,2,1},{3,1,1,2},{4,3,1,2},{3,2,1,2},{2,4,1,2},{1,3,1,2},{4,2,2,1},{4,3,1,2},
+# {4,2,1,2},{2,3,1,2},{2,4,1,2},{3,2,1,2},{1,3,2,1},{3,1,1,2},{2,3,1,2},{4,2,2,1},{1,4,1,2},{1,2,1,2},{3,2,1,2},{2,4,2,1},{3,1,1,2},{3,4,1,2},
+# {4,2,1,2},{4,1,1,2},{2,3,2,1},{2,1,2,1},{3,2,1,2},{2,3,2,1},{1,2,2,1},{1,2,2,1},{2,4,1,2},{2,3,2,1},{1,2,2,1},{1,4,2,1},{2,1,2,1},{2,3,2,1},
+# {1,4,1,2},{1,3,2,1},{4,3,2,1},{4,2,2,1},{3,1,1,2},{2,3,2,1},{4,2,2,1},{3,1,2,1},{3,1,2,1},{4,3,2,1},{4,2,2,1},{1,4,1,2},{1,2,2,1},{1,4,2,1},
+# {1,2,2,1},{4,2,1,2},{1,4,2,1},{2,1,2,1},{4,1,2,1},{1,2,1,2},{1,4,2,1},{3,1,2,1},{2,1,2,1},{1,2,2,1},{2,1,1,2},{4,1,2,1},{1,4,2,1},{3,2,2,1}};
+#-----------------------------------------------------------------------------------------------------------------------------------
+
+# Define stimulus locations on the screen
+# 1=location stimulus1, 2 = location stimulus2, 3= feedback when choice stim1, 4=feedback when choice stim2; 
+# feedback choice stim1: 1=correct, 2=wrong.
+array<int> stim_location [4][3] = {{1,0,220},{2,330,0},{3,0,-220},{4,-330,0}}; # position coordinates (trial type, x=,y=)
+array<int> locations[4][4] = {{-200,200,125,365},{225,625,-120,120},{-200,200,-365,-125},{-625,-225,-120,120 }};
+
+int buttonA ; int buttonB ; array<int> arraybuttons[2];
+string ID_subject = logfile.subject(); # get subject ID | WARNING: format has to be "Subject_12_Session_2_color_1"
+###########
+# string ID_subject = "Subject_55512_Session_2"; # in case opening from editor otherwise comment and uncomment previous line.
+###########
+
+array <string> subject_parts[0];
+int subject_nb; int session_nb; int color_nb;
+string chlog=""; #empty string, is filled during trial, then written to log, emptied and filled again on next trial
+output_file PRLlog = new output_file;
+
+# load images for feedback
+if (imagefeedback==1)
+then 
+bmp1.load(); # smiley
+bmp2.load(); # cryey
+end;
