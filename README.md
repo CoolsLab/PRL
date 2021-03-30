@@ -69,10 +69,6 @@ If you intend to publish results obtained with this code, cite it as follows:
 
 - CoolsLab. (2021, March 30). CoolsLab/PRL: Probabilistic Reversal Learning task (DUTCH) (Version v0.1.0). Zenodo. http://doi.org/10.5281/zenodo.4647056
 
-Original Probabilistic Reversal Learning paper:
-
-- Roshan Cools, Roger A. Barker, Barbara J. Sahakian, Trevor W. Robbins, Enhanced or Impaired Cognitive Function in Parkinson's Disease as a Function of Dopaminergic Medication and Task Demands, Cerebral Cortex, Volume 11, Issue 12, December 2001, Pages 1136–1143, https://doi.org/10.1093/cercor/11.12.1136
-
 ## Version
 
 Version 0.1 - March 2021
