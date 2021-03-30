@@ -61,3 +61,22 @@ At the end of a testing session, make sure to save the two output files for each
 - subject_#_session_#-PRL.log: this one is the standard presentation log file (serves as backup)
 
 DO NOT press ESCAPE while the task is running unless  you want to restart the task and do not want to use the data from this subject. 
+
+
+## Citation
+
+If you intend to publish results obtained with this code, cite it as follows:
+
+- CoolsLab. (2021, March 30). CoolsLab/PRL: Probabilistic Reversal Learning task (DUTCH) (Version v0.1.0). Zenodo. http://doi.org/10.5281/zenodo.4647056
+
+Original Probabilistic Reversal Learning paper:
+
+- Roshan Cools, Roger A. Barker, Barbara J. Sahakian, Trevor W. Robbins, Enhanced or Impaired Cognitive Function in Parkinson's Disease as a Function of Dopaminergic Medication and Task Demands, Cerebral Cortex, Volume 11, Issue 12, December 2001, Pages 1136–1143, https://doi.org/10.1093/cercor/11.12.1136
+
+## Version
+
+Version 0.1 - March 2021
+
+## Contact
+
+E-mail: roshan.cools@donders.ru.nl
